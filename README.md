@@ -1,6 +1,6 @@
 # CLI Login System
 
-A secure Command Line Interface (CLI) based authentication system developed in **Go**. This project demonstrates authentication fundamentals, secure password management, session handling, and clean software architecture using SQLite as the persistence layer.
+A secure Command Line Interface (CLI) based authentication system developed in **Go**. This project demonstrates authentication fundamentals, secure password management, session handling, account security mechanisms, and **Multi-Factor Authentication (MFA) using TOTP** with SQLite as the persistence layer.
 
 ---
 
@@ -11,35 +11,66 @@ The CLI Login System provides a complete authentication workflow that allows use
 - Register new accounts
 - Login securely
 - Reset passwords
+- Enable and verify TOTP-based two-factor authentication
 - View profile information
 - Logout
 - Prevent unauthorized access through account lockout
 
-The application follows a layered architecture separating business logic, database operations, and user interaction, making it scalable and maintainable.
+The application follows a layered architecture separating business logic, database operations, and user interaction, making it scalable, maintainable, and easy to extend.
 
 ---
 
-## Features
+# Features
 
-### Authentication
+## Authentication
+
 - Secure User Registration
 - User Login
 - Password Reset
 - Session Management
 - Logout
+- Profile Management
 
-### Security
+---
+
+## Multi-Factor Authentication (MFA)
+
+The system implements **TOTP (Time-Based One-Time Password)** as an additional authentication layer.
+
+Features include:
+
+- Generate unique TOTP secret keys for users
+- Enable two-factor authentication during registration
+- Verify OTP during login
+- Time-based OTP expiration handling
+- Support for authenticator applications like Google Authenticator/Authy
+- Additional security layer even if passwords are compromised
+
+---
+
+## Security
+
 - Password hashing using **bcrypt**
+- Plain-text passwords are never stored
 - Duplicate username validation
 - Account lockout after multiple failed login attempts
 - Password verification before reset
+- Secure TOTP verification
+- Session-based authentication management
 
-### Database
+---
+
+## Database
+
 - SQLite integration
 - Automatic database initialization
 - User persistence
+- Storage of authentication metadata including TOTP configuration
 
-### Developer Features
+---
+
+## Developer Features
+
 - Repository Pattern
 - Layered Architecture
 - Docker Support
@@ -48,7 +79,7 @@ The application follows a layered architecture separating business logic, databa
 
 ---
 
-## Architecture
+# Architecture
 
 ```
                     +----------------+
@@ -59,8 +90,18 @@ The application follows a layered architecture separating business logic, databa
                             ▼
                     +----------------+
                     | Authentication |
-                    |  Business Logic|
+                    | Business Logic |
                     +-------+--------+
+                            |
+              +-------------+-------------+
+              |                           |
+              ▼                           ▼
+      +---------------+          +---------------+
+      | Password Auth |          | TOTP Verify   |
+      |    bcrypt     |          | OTP Validation|
+      +---------------+          +---------------+
+              |                           |
+              +-------------+-------------+
                             |
                             ▼
                     +----------------+
@@ -76,7 +117,76 @@ The application follows a layered architecture separating business logic, databa
 
 ---
 
-## Project Structure
+# Authentication Flow
+
+```
+User Registration
+
+        |
+        ▼
+
+Create Username & Password
+
+        |
+        ▼
+
+Generate Unique TOTP Secret
+
+        |
+        ▼
+
+Store User Information
+
+        |
+        ▼
+
+Configure Authenticator App
+
+        |
+        ▼
+
+Account Created
+```
+
+### Login Flow
+
+```
+Enter Username
+
+        |
+        ▼
+
+Enter Password
+
+        |
+        ▼
+
+Validate Password using bcrypt
+
+        |
+        ▼
+
+Enter TOTP Code
+
+        |
+        ▼
+
+Verify OTP
+
+        |
+        ▼
+
+Create Session
+
+        |
+        ▼
+
+Access Granted
+```
+
+---
+
+# Project Structure
 
 ```
 cli-login-system
@@ -90,7 +200,8 @@ cli-login-system
 │   │   ├── register.go
 │   │   ├── password.go
 │   │   ├── reset_password.go
-│   │   └── session.go
+│   │   ├── session.go
+│   │   └── totp.go
 │   │
 │   ├── cli
 │   │   └── menu.go
@@ -119,21 +230,23 @@ cli-login-system
 
 ---
 
-## Tech Stack
+# Tech Stack
 
 | Technology | Purpose |
 |------------|---------|
 | Go | Backend Development |
 | SQLite | Database |
 | bcrypt | Password Hashing |
+| TOTP | Multi-Factor Authentication |
+| OTP Library | OTP Generation and Verification |
 | Docker | Containerization |
 | Git | Version Control |
 
 ---
 
-## Getting Started
+# Getting Started
 
-### Clone the Repository
+## Clone the Repository
 
 ```bash
 git clone https://github.com/<your-username>/cli-login-system.git
@@ -143,7 +256,7 @@ cd cli-login-system
 
 ---
 
-### Install Dependencies
+## Install Dependencies
 
 ```bash
 go mod tidy
@@ -151,7 +264,7 @@ go mod tidy
 
 ---
 
-### Run the Application
+## Run the Application
 
 ```bash
 go run cmd/main.go
@@ -167,7 +280,7 @@ go build -o app.exe cmd/main.go
 
 ---
 
-## Run with Docker
+# Run with Docker
 
 Build and start the application:
 
@@ -177,7 +290,7 @@ docker compose up --build
 
 ---
 
-## Running Tests
+# Running Tests
 
 Run all tests:
 
@@ -193,7 +306,7 @@ go test ./... -cover
 
 ---
 
-## Sample Execution
+# Sample Execution
 
 ```
 ========== CLI Login System ==========
@@ -211,68 +324,127 @@ Choose option: 1
 Username: drishti
 Password: ********
 
+Generating TOTP Secret...
+
+Configure Authenticator Application
+
 ✅ User Registered Successfully
+```
+
+### Login
+
+```
+Username: drishti
+
+Password: ********
+
+Enter TOTP Code: 493821
+
+✅ Authentication Successful
+
+Welcome drishti
 ```
 
 ---
 
-## Security Implementation
+# Security Implementation
 
 The application follows authentication best practices including:
 
+## Password Security
+
 - Password hashing using bcrypt
-- Plain-text passwords are never stored
-- Account lockout after repeated failed login attempts
+- No plain-text password storage
+- Secure password verification
+- Password validation before sensitive operations
+
+## Account Protection
+
+- Failed login attempt tracking
+- Account lockout mechanism
 - Duplicate username prevention
+
+## Multi-Factor Authentication
+
+- TOTP-based second authentication factor
+- Unique secret generated for each user
+- Time-based OTP validation
+- OTP verification after successful password authentication
+- Protection against compromised passwords
+
+## Session Security
+
 - Session-based login management
-- Password reset with old password verification
+- Protected user operations
+- Secure logout functionality
 
 ---
 
-## Testing
+# TOTP Implementation Details
 
-The project includes automated tests covering:
+TOTP (Time-Based One-Time Password) provides an additional authentication factor by generating temporary OTP codes based on:
 
-- Password hashing
-- Password verification
-- User registration
-- Duplicate registration
-- Login validation
-- Password reset
-- Session management
-- Account lockout
+- User-specific secret key
+- Current timestamp
+- Fixed validity interval
+
+The implementation includes:
+
+- Generating a unique secret during account setup
+- Associating the secret with a user account
+- Validating OTP during login
+- Rejecting expired or invalid OTP codes
+- Integrating MFA into the existing authentication flow
 
 ---
 
-## Future Enhancements
+# Future Enhancements
 
 Potential improvements include:
 
 - JWT Authentication
-- Multi-Factor Authentication (MFA)
 - Password Strength Validation
 - Email Verification
 - Role-Based Access Control (RBAC)
 - Audit Logging
+- Backup Authentication Codes
 - REST API Version
+- Web-based authentication dashboard
 
 ---
 
-## Design Decisions
+# Design Decisions
 
 This project follows a layered architecture to improve maintainability and scalability.
 
-- **CLI Layer** – Handles user interaction.
-- **Authentication Layer** – Implements business rules such as login, registration, and password reset.
-- **Repository Layer** – Encapsulates all database operations.
-- **Database Layer** – Manages SQLite connectivity and schema initialization.
+### CLI Layer
 
-This separation of concerns makes the application easier to test, maintain, and extend.
+Handles user interaction, menu navigation, and command execution.
+
+### Authentication Layer
+
+Implements business rules including:
+
+- Registration
+- Login
+- Password reset
+- Session management
+- TOTP verification
+
+### Repository Layer
+
+Encapsulates database operations and provides abstraction from the storage implementation.
+
+### Database Layer
+
+Manages SQLite connectivity, migrations, and schema initialization.
+
+This separation of concerns makes the application easier to test, maintain, and extend with additional authentication mechanisms.
 
 ---
 
-## Author
+# Author
 
 **Drishti Joshi**
 
-Go | Backend Development | Authentication Systems | SQLite | Docker
+Go | Backend Development | Authentication Systems | MFA | SQLite | Docker

@@ -6,7 +6,7 @@ type User struct {
 	ID               int
 	Username         string
 	Password         string
-	TOTPSecret       string
+	TOTPSecret       *string
 	TwoFactorEnabled bool
 	FailedAttempts   int
 	LockedUntil      *time.Time

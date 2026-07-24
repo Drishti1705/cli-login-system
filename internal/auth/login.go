@@ -1,7 +1,11 @@
 package auth
 
 import (
+	"bufio"
 	"errors"
+	"fmt"
+	"os"
+	"strings"
 	"time"
 
 	"github.com/Drishti1705/cli-login-system/internal/models"
@@ -23,7 +27,7 @@ func LoginUser(username, password string) (*models.User, error) {
 
 	// Check if account is locked
 	if user.LockedUntil != nil && time.Now().Before(*user.LockedUntil) {
-	return nil, errors.New("Account is locked. Please try again later")
+		return nil, errors.New("account is locked. Please try again later")
 	}
 
 	// Verify password
@@ -50,10 +54,32 @@ func LoginUser(username, password string) (*models.User, error) {
 		return nil, errors.New("invalid password")
 	}
 
-	// Successful login
+	// Reset failed attempts
 	_ = repository.ResetFailedAttempts(username)
 
+	// Verify OTP if 2FA is enabled
+	if user.TwoFactorEnabled {
+
+		if user.TOTPSecret == nil {
+			return nil, errors.New("2FA secret not configured")
+		}
+
+		reader := bufio.NewReader(os.Stdin)
+
+		fmt.Print("Enter 6-digit OTP: ")
+		code, _ := reader.ReadString('\n')
+		code = strings.TrimSpace(code)
+
+		if !VerifyOTP(*user.TOTPSecret, code) {
+			return nil, errors.New("invalid OTP")
+		}
+	}
+
+	// Update last login
+	_ = repository.UpdateLastLogin(username)
+
+	// Start session
 	LoginSession(user)
-	
+
 	return user, nil
 }

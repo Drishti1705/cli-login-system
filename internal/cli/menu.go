@@ -24,8 +24,10 @@ func Start() {
 		fmt.Println("3. Reset Password")
 		fmt.Println("4. Profile")
 		fmt.Println("5. Logout")
-		fmt.Println("6. Show Users (Debug)")
-		fmt.Println("7. Exit")
+		fmt.Println("6. Enable 2FA")
+		fmt.Println("7. Disable 2FA")
+		fmt.Println("8. Show Users (Debug)")
+		fmt.Println("9. Exit")
 		fmt.Print("Choose option: ")
 
 		choice, _ := reader.ReadString('\n')
@@ -105,8 +107,16 @@ func Start() {
 
 			fmt.Println()
 			fmt.Println("===== PROFILE =====")
-			fmt.Println("User ID  :", user.ID)
-			fmt.Println("Username :", user.Username)
+			fmt.Println("User ID                :", user.ID)
+			fmt.Println("Username               :", user.Username)
+			fmt.Println("2FA Enabled            :", user.TwoFactorEnabled)
+			fmt.Println("Registered On          :", user.CreatedAt)
+
+			if user.LastLogin != nil {
+				fmt.Println("Last Login             :", user.LastLogin)
+			} else {
+				fmt.Println("Last Login             : Never")
+			}
 
 		case "5":
 
@@ -119,6 +129,44 @@ func Start() {
 			fmt.Println("✅ Logged out successfully.")
 
 		case "6":
+
+			if !auth.IsLoggedIn() {
+				fmt.Println("❌ Please login first.")
+				break
+			}
+
+			user := auth.GetCurrentUser()
+
+			secret, err := auth.GenerateSecret(user.Username)
+			if err != nil {
+				fmt.Println("❌", err)
+				break
+			}
+
+			fmt.Println()
+			fmt.Println("✅ Two Factor Authentication Enabled")
+			fmt.Println()
+			fmt.Println("Add this secret to Google Authenticator:")
+			fmt.Println(secret)
+
+		case "7":
+
+			if !auth.IsLoggedIn() {
+				fmt.Println("❌ Please login first.")
+				break
+			}
+
+			user := auth.GetCurrentUser()
+
+			err := auth.Disable2FA(user.Username)
+			if err != nil {
+				fmt.Println("❌", err)
+				break
+			}
+
+			fmt.Println("✅ Two Factor Authentication Disabled")
+
+		case "8":
 
 			users, err := repository.GetAllUsers()
 
@@ -148,7 +196,7 @@ func Start() {
 				)
 			}
 
-		case "7":
+		case "9":
 
 			fmt.Println("Goodbye!")
 			return

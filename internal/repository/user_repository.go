@@ -25,11 +25,16 @@ func CreateUser(username, hashedPassword string) error {
 func GetUserByUsername(username string) (*models.User, error) {
 
 	query := `
-	SELECT id,
-		   username,
-		   password,
-		   failed_attempts,
-		   locked_until
+	SELECT
+		id,
+		username,
+		password,
+		totp_secret,
+		two_factor_enabled,
+		failed_attempts,
+		locked_until,
+		created_at,
+		last_login
 	FROM users
 	WHERE username = ?
 	`
@@ -40,8 +45,12 @@ func GetUserByUsername(username string) (*models.User, error) {
 		&user.ID,
 		&user.Username,
 		&user.Password,
+		&user.TOTPSecret,
+		&user.TwoFactorEnabled,
 		&user.FailedAttempts,
 		&user.LockedUntil,
+		&user.CreatedAt,
+		&user.LastLogin,
 	)
 
 	if err == sql.ErrNoRows {
@@ -140,5 +149,43 @@ func UpdatePassword(username, hashedPassword string) error {
 	`
 
 	_, err := database.DB.Exec(query, hashedPassword, username)
+	return err
+}
+
+func EnableTwoFactor(username, secret string) error {
+
+	query := `
+	UPDATE users
+	SET totp_secret = ?,
+	    two_factor_enabled = TRUE
+	WHERE username = ?
+	`
+
+	_, err := database.DB.Exec(query, secret, username)
+	return err
+}
+
+func DisableTwoFactor(username string) error {
+
+	query := `
+	UPDATE users
+	SET totp_secret = NULL,
+	    two_factor_enabled = FALSE
+	WHERE username = ?
+	`
+
+	_, err := database.DB.Exec(query, username)
+	return err
+}
+
+func UpdateLastLogin(username string) error {
+
+	query := `
+	UPDATE users
+	SET last_login = CURRENT_TIMESTAMP
+	WHERE username = ?
+	`
+
+	_, err := database.DB.Exec(query, username)
 	return err
 }
