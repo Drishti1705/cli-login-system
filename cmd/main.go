@@ -7,7 +7,7 @@ import (
 
 func main() {
 
-	database.Connect()
+	database.Connect("./data/login.db")
 	database.Migrate()
 
 	cli.Start()

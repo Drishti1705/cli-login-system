@@ -2,28 +2,33 @@ package auth
 
 import (
 	"errors"
+	"strings"
 
-	"github.com/Drishti1705/cli-login-system/internal/database"
+	"github.com/Drishti1705/cli-login-system/internal/repository"
 )
 
-// RegisterUser registers a new user.
 func RegisterUser(username, password string) error {
 
-	// Hash the password
+	// Basic validation
+	username = strings.TrimSpace(username)
+	password = strings.TrimSpace(password)
+
+	if username == "" {
+		return errors.New("username cannot be empty")
+	}
+
+	if password == "" {
+		return errors.New("password cannot be empty")
+	}
+
 	hashedPassword, err := HashPassword(password)
 	if err != nil {
 		return err
 	}
 
-	query := `
-	INSERT INTO users(username, password)
-	VALUES(?, ?)
-	`
-
-	_, err = database.DB.Exec(query, username, hashedPassword)
-
+	err = repository.CreateUser(username, hashedPassword)
 	if err != nil {
-		return errors.New("Username Already Exists")
+		return errors.New("username already exists")
 	}
 
 	return nil

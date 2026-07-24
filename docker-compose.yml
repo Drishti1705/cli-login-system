@@ -1,0 +1,10 @@
+services:
+  cli-login-system:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cli-login-system
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./data:/app/data

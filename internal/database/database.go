@@ -1,18 +1,18 @@
 package database
 
 import (
-    "database/sql"
-    "log"
+	"database/sql"
+	"log"
 
-    _ "modernc.org/sqlite"
+	_ "modernc.org/sqlite"
 )
 
 var DB *sql.DB
 
-func Connect() {
+func Connect(dbPath string) {
 	var err error
 
-	DB, err = sql.Open("sqlite", "./data/login.db")
+	DB, err = sql.Open("sqlite", dbPath)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -1,26 +1,18 @@
+# Executables
+*.exe
+*.out
+
+# Database
+data/*.db
+
 # Environment
 .env
 
-# Build files
-*.exe
-*.exe~
-*.dll
-*.so
-*.dylib
-
-# Database
-*.db
-
-# Go
-bin/
-vendor/
-
-# VS Code
+# IDE
 .vscode/
 
-# IntelliJ/GoLand
-.idea/
-
-# OS files
+# OS
 .DS_Store
-Thumbs.db
+
+# Logs
+*.log
