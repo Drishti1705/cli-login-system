@@ -1,0 +1,26 @@
+# Environment
+.env
+
+# Build files
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Database
+*.db
+
+# Go
+bin/
+vendor/
+
+# VS Code
+.vscode/
+
+# IntelliJ/GoLand
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
