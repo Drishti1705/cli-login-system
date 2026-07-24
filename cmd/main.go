@@ -1,7 +1,13 @@
 package main
 
-import "fmt"
+import (
+	"github.com/Drishti1705/cli-login-system/internal/database"
+)
 
 func main() {
-	fmt.Println("Welcome to CLI Login System")
+
+	database.Connect()
+
+	database.Migrate()
+
 }
